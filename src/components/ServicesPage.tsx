@@ -1,182 +1,235 @@
-import { MapPin, Star, IndianRupee, Navigation2, Wrench, Zap, Car, Droplet, User, Wallet } from 'lucide-react';
+import { useState } from 'react';
+import { ServicesMainPage } from './services/ServicesMainPage';
+import { SubServicesPage } from './services/SubServicesPage';
+import { WorkerListPage } from './services/WorkerListPage';
+import { BookingPage } from './services/BookingPage';
+import { WaitingPage } from './services/WaitingPage';
+import { JobAcceptedPage } from './services/JobAcceptedPage';
+import { LiveTrackingPage } from './services/LiveTrackingPage';
+import { OTPVerificationPage } from './services/OTPVerificationPage';
+import { ServiceCompletionPage } from './services/ServiceCompletionPage';
+import { PaymentPromptPage } from './services/PaymentPromptPage';
+import { RatingPage } from './services/RatingPage';
 
 interface ServicesPageProps {
   onProfileClick: () => void;
   onWalletClick: () => void;
 }
 
+type ServiceView = 
+  | 'main' 
+  | 'subServices' 
+  | 'workers' 
+  | 'booking' 
+  | 'waiting' 
+  | 'accepted'
+  | 'tracking' 
+  | 'otp' 
+  | 'serviceInProgress'
+  | 'payment'
+  | 'rating'
+  | 'completed';
+
 export function ServicesPage({ onProfileClick, onWalletClick }: ServicesPageProps) {
-  const services = [
-    {
-      id: 1,
-      name: 'Rajesh Kumar',
-      type: 'Plumber',
-      icon: Droplet,
-      rating: 4.8,
-      distance: '1.2 km',
-      price: '₹300/hr',
-      lat: 40,
-      lng: 40
-    },
-    {
-      id: 2,
-      name: 'Amit Singh',
-      type: 'Electrician',
-      icon: Zap,
-      rating: 4.9,
-      distance: '0.8 km',
-      price: '₹350/hr',
-      lat: 45,
-      lng: 50
-    },
-    {
-      id: 3,
-      name: 'Vijay Sharma',
-      type: 'Mechanic',
-      icon: Car,
-      rating: 4.7,
-      distance: '2.1 km',
-      price: '₹400/hr',
-      lat: 55,
-      lng: 35
-    },
-    {
-      id: 4,
-      name: 'Suresh Patel',
-      type: 'Technician',
-      icon: Wrench,
-      rating: 4.6,
-      distance: '1.5 km',
-      price: '₹320/hr',
-      lat: 30,
-      lng: 60
-    }
-  ];
+  const [currentView, setCurrentView] = useState<ServiceView>('main');
+  const [selectedService, setSelectedService] = useState<string>('');
+  const [selectedSubServices, setSelectedSubServices] = useState<any[]>([]);
+  const [selectedSubService, setSelectedSubService] = useState<any>(null);
+  const [selectedWorker, setSelectedWorker] = useState<any>(null);
+  const [bookingDetails, setBookingDetails] = useState<any>(null);
 
-  const categories = ['All', 'Plumber', 'Electrician', 'Mechanic', 'Technician'];
+  const handleServiceSelect = (serviceName: string, subServices: any[]) => {
+    setSelectedService(serviceName);
+    setSelectedSubServices(subServices);
+    setCurrentView('subServices');
+  };
 
-  return (
-    <div className="min-h-full bg-[#0A0F1C] text-white flex flex-col">
-      {/* Header */}
-      <div className="px-5 pt-6 pb-4 flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl mb-1">Services</h1>
-          <p className="text-gray-400 text-sm">Find nearby service providers</p>
+  const handleSubServiceSelect = (subService: any) => {
+    setSelectedSubService(subService);
+    setCurrentView('workers');
+  };
+
+  const handleWorkerSelect = (worker: any) => {
+    setSelectedWorker(worker);
+    setCurrentView('booking');
+  };
+
+  const handleConfirmBooking = (details: any) => {
+    setBookingDetails(details);
+    setCurrentView('waiting');
+  };
+
+  const handleBookingAccepted = () => {
+    setCurrentView('accepted');
+  };
+
+  const handlePaymentMethodChange = (method: string) => {
+    setBookingDetails({
+      ...bookingDetails,
+      paymentMethod: method
+    });
+  };
+
+  const handleContinueToTracking = () => {
+    setCurrentView('tracking');
+  };
+
+  const handleWorkerArrived = () => {
+    setCurrentView('otp');
+  };
+
+  const handleOTPVerified = () => {
+    setCurrentView('serviceInProgress');
+  };
+
+  const handleServiceMarkedComplete = () => {
+    setCurrentView('payment');
+  };
+
+  const handlePaymentComplete = () => {
+    setCurrentView('rating');
+  };
+
+  const handleRatingComplete = () => {
+    setCurrentView('completed');
+    // Show success message and reset after a delay
+    setTimeout(() => {
+      handleReset();
+    }, 3000);
+  };
+
+  const handleCancel = () => {
+    handleReset();
+  };
+
+  const handleReset = () => {
+    setCurrentView('main');
+    setSelectedService('');
+    setSelectedSubServices([]);
+    setSelectedSubService(null);
+    setSelectedWorker(null);
+    setBookingDetails(null);
+  };
+
+  // Render different views
+  if (currentView === 'main') {
+    return <ServicesMainPage onServiceSelect={handleServiceSelect} />;
+  }
+
+  if (currentView === 'subServices') {
+    return (
+      <SubServicesPage
+        serviceName={selectedService}
+        subServices={selectedSubServices}
+        onBack={() => setCurrentView('main')}
+        onSubServiceSelect={handleSubServiceSelect}
+      />
+    );
+  }
+
+  if (currentView === 'workers') {
+    return (
+      <WorkerListPage
+        serviceName={selectedService}
+        subServiceName={selectedSubService.name}
+        onBack={() => setCurrentView('subServices')}
+        onWorkerSelect={handleWorkerSelect}
+      />
+    );
+  }
+
+  if (currentView === 'booking') {
+    return (
+      <BookingPage
+        worker={selectedWorker}
+        serviceName={selectedService}
+        subServiceName={selectedSubService.name}
+        onBack={() => setCurrentView('workers')}
+        onConfirmBooking={handleConfirmBooking}
+      />
+    );
+  }
+
+  if (currentView === 'waiting') {
+    return (
+      <WaitingPage
+        bookingDetails={bookingDetails}
+        onAccepted={handleBookingAccepted}
+        onCancel={handleCancel}
+      />
+    );
+  }
+
+  if (currentView === 'accepted') {
+    return (
+      <JobAcceptedPage
+        bookingDetails={bookingDetails}
+        onPaymentMethodChange={handlePaymentMethodChange}
+        onContinue={handleContinueToTracking}
+      />
+    );
+  }
+
+  if (currentView === 'tracking') {
+    return (
+      <LiveTrackingPage
+        bookingDetails={bookingDetails}
+        onWorkerArrived={handleWorkerArrived}
+      />
+    );
+  }
+
+  if (currentView === 'otp') {
+    return (
+      <OTPVerificationPage
+        bookingDetails={bookingDetails}
+        onVerified={handleOTPVerified}
+      />
+    );
+  }
+
+  if (currentView === 'serviceInProgress') {
+    return (
+      <ServiceCompletionPage
+        bookingDetails={bookingDetails}
+        onMarkComplete={handleServiceMarkedComplete}
+      />
+    );
+  }
+
+  if (currentView === 'payment') {
+    return (
+      <PaymentPromptPage
+        bookingDetails={bookingDetails}
+        onPaymentComplete={handlePaymentComplete}
+      />
+    );
+  }
+
+  if (currentView === 'rating') {
+    return (
+      <RatingPage
+        bookingDetails={bookingDetails}
+        onRatingComplete={handleRatingComplete}
+      />
+    );
+  }
+
+  if (currentView === 'completed') {
+    return (
+      <div className="min-h-full bg-[#0A0F1C] text-white flex flex-col items-center justify-center px-5">
+        <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mb-6 relative">
+          <div className="absolute inset-0 bg-green-500 rounded-full opacity-20 animate-ping"></div>
+          <span className="text-5xl relative z-10">✅</span>
         </div>
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={onWalletClick}
-            className="bg-[#141A2A] p-2.5 rounded-full border border-[#1f2937] hover:border-[#007BFF] transition-all"
-          >
-            <Wallet className="w-5 h-5 text-gray-400" />
-          </button>
-          <button 
-            onClick={onProfileClick}
-            className="bg-[#141A2A] p-2.5 rounded-full border border-[#1f2937] hover:border-[#007BFF] transition-all"
-          >
-            <User className="w-5 h-5 text-gray-400" />
-          </button>
-        </div>
+        <h2 className="text-2xl mb-2">Thank You!</h2>
+        <p className="text-gray-400 text-center mb-2">
+          Your review has been submitted successfully
+        </p>
+        <p className="text-gray-500 text-sm">Redirecting to home...</p>
       </div>
+    );
+  }
 
-      {/* Category Filter */}
-      <div className="px-5 mb-4">
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-          {categories.map((category) => (
-            <button
-              key={category}
-              className={`px-4 py-2 rounded-full whitespace-nowrap text-sm ${
-                category === 'All'
-                  ? 'bg-[#007BFF] text-white'
-                  : 'bg-[#141A2A] text-gray-400 border border-[#1f2937]'
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Map Area */}
-      <div className="mx-5 mb-4 bg-[#141A2A] rounded-xl overflow-hidden border border-[#1f2937] relative h-64">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0A0F1C] to-[#141A2A]">
-          {/* Grid pattern for map effect */}
-          <div className="absolute inset-0 opacity-20">
-            <div className="grid grid-cols-6 grid-rows-6 h-full w-full">
-              {Array.from({ length: 36 }).map((_, i) => (
-                <div key={i} className="border border-[#1f2937]"></div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Service provider pins */}
-          {services.map((service) => (
-            <div
-              key={service.id}
-              className="absolute transform -translate-x-1/2 -translate-y-1/2"
-              style={{ left: `${service.lng}%`, top: `${service.lat}%` }}
-            >
-              <div className="relative group">
-                <div className="bg-[#007BFF] p-2 rounded-full shadow-lg border-2 border-white cursor-pointer hover:scale-110 transition-transform">
-                  <service.icon className="w-4 h-4 text-white" />
-                </div>
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-[#141A2A] px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity border border-[#007BFF]">
-                  {service.type}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* My Location Button */}
-        <button className="absolute bottom-4 right-4 bg-white text-[#007BFF] p-3 rounded-full shadow-lg hover:shadow-xl transition-shadow">
-          <Navigation2 className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* Service Cards */}
-      <div className="flex-1 px-5 pb-24 overflow-y-auto">
-        <h2 className="text-lg mb-3">Available Services</h2>
-        <div className="space-y-3">
-          {services.map((service) => (
-            <div
-              key={service.id}
-              className="bg-[#141A2A] rounded-xl p-4 border border-[#1f2937] hover:border-[#007BFF] transition-all"
-            >
-              <div className="flex items-start gap-3">
-                <div className="bg-[#007BFF]/10 p-3 rounded-lg">
-                  <service.icon className="w-6 h-6 text-[#007BFF]" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-white mb-1">{service.name}</h3>
-                  <p className="text-gray-400 text-sm mb-2">{service.type}</p>
-                  <div className="flex items-center gap-4 text-sm">
-                    <div className="flex items-center gap-1 text-yellow-400">
-                      <Star className="w-4 h-4 fill-current" />
-                      <span>{service.rating}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-gray-400">
-                      <MapPin className="w-4 h-4" />
-                      <span>{service.distance}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-[#007BFF]">
-                      <IndianRupee className="w-4 h-4" />
-                      <span>{service.price}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Request Service Button */}
-      <div className="absolute bottom-20 left-0 right-0 px-5">
-        <button className="w-full bg-gradient-to-r from-[#007BFF] to-[#0056b3] text-white py-4 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-          Request Service
-        </button>
-      </div>
-    </div>
-  );
+  return null;
 }
