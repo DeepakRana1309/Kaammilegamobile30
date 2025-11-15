@@ -1,443 +1,555 @@
 import { useState } from 'react';
-import { 
-  Briefcase, 
-  Plus, 
-  Eye, 
-  Edit, 
-  Trash2,
+import { motion } from 'motion/react';
+import {
+  Briefcase,
   Users,
+  Star,
+  Eye,
   Clock,
-  CheckCircle,
-  XCircle,
-  TrendingUp,
-  LogOut,
+  Check,
+  Plus,
   Search,
-  Building2
+  Filter,
+  TrendingUp,
+  Calendar,
+  MapPin,
+  DollarSign,
+  User,
+  X,
+  ArrowLeft,
+  Mail,
+  Phone,
+  FileText,
+  ExternalLink,
+  Menu,
+  Bell,
+  FileCheck
 } from 'lucide-react';
+import { Job } from '../App';
+import { ViewApplicationsPage } from './company/ViewApplicationsPage';
+import { CandidateProfilePage } from './company/CandidateProfilePage';
+import { EditJobPage } from './company/EditJobPage';
+import { ScheduleInterviewPage, InterviewData } from './company/ScheduleInterviewPage';
+import { ShortlistSection } from './company/ShortlistSection';
+import { ReviewedSection } from './company/ReviewedSection';
 
 interface CompanyDashboardProps {
-  onLogout: () => void;
+  userName: string;
   companyName: string;
+  onNavigate: (screen: string) => void;
+  onJobSelect?: (job: Job) => void;
 }
 
-export function CompanyDashboard({ onLogout, companyName }: CompanyDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'jobs' | 'applications' | 'add-job'>('overview');
-  const [showAddJobForm, setShowAddJobForm] = useState(false);
-  const [jobForm, setJobForm] = useState({
-    title: '',
-    location: '',
+interface JobAnalytics extends Job {
+  views: number;
+  applications: number;
+  interested: number;
+  shortlisted: number;
+}
+
+interface Candidate {
+  id: string;
+  candidateName: string;
+  skills: string[];
+  experience: string;
+  location: string;
+  matchScore: number;
+  appliedFor: string;
+  status: 'new' | 'reviewed' | 'shortlisted' | 'rejected' | 'interview';
+  email: string;
+  phone: string;
+  appliedDate: string;
+  coverLetter: string;
+}
+
+// Mock data
+const companyJobs: JobAnalytics[] = [
+  {
+    id: '1',
+    title: 'Frontend Developer',
+    company: 'Your Company',
+    location: 'Mumbai, Maharashtra',
+    salary: '₹8-12 LPA',
     type: 'Full-time',
-    experience: '',
-    salary: '',
-    description: '',
-    requirements: '',
-    skills: ''
-  });
+    description: 'Looking for React developer',
+    requirements: ['React', 'TypeScript', 'Tailwind'],
+    postedDate: '2 days ago',
+    status: 'approved',
+    views: 234,
+    applications: 45,
+    interested: 89,
+    shortlisted: 12,
+  },
+  {
+    id: '2',
+    title: 'Backend Developer',
+    company: 'Your Company',
+    location: 'Mumbai, Maharashtra',
+    salary: '₹9-14 LPA',
+    type: 'Full-time',
+    description: 'Node.js backend developer needed',
+    requirements: ['Node.js', 'MongoDB', 'Express'],
+    postedDate: '5 days ago',
+    status: 'approved',
+    views: 178,
+    applications: 32,
+    interested: 67,
+    shortlisted: 8,
+  },
+];
 
-  // Mock data for company's posted jobs
-  const postedJobs = [
-    {
-      id: 1,
-      title: 'Senior React Developer',
-      location: 'Mumbai, Maharashtra',
-      type: 'Full-time',
-      salary: '₹8-12 LPA',
-      postedDate: '2 days ago',
-      status: 'approved',
-      views: 234,
-      applications: 45
-    },
-    {
-      id: 2,
-      title: 'Product Manager',
-      location: 'Bangalore, Karnataka',
-      type: 'Full-time',
-      salary: '₹15-20 LPA',
-      postedDate: '5 days ago',
-      status: 'pending',
-      views: 0,
-      applications: 0
-    },
-    {
-      id: 3,
-      title: 'UI/UX Designer',
-      location: 'Pune, Maharashtra',
-      type: 'Full-time',
-      salary: '₹6-10 LPA',
-      postedDate: '1 week ago',
-      status: 'approved',
-      views: 189,
-      applications: 32
-    }
-  ];
+const mockCandidates: Candidate[] = [
+  {
+    id: '1',
+    candidateName: 'Rahul Sharma',
+    email: 'rahul@email.com',
+    phone: '+91 98765 43210',
+    location: 'Mumbai, Maharashtra',
+    experience: '3 years',
+    skills: ['React', 'TypeScript', 'Node.js'],
+    appliedDate: '2 days ago',
+    status: 'new',
+    matchScore: 95,
+    appliedFor: 'Frontend Developer',
+    coverLetter: 'I am excited to apply...'
+  },
+  {
+    id: '2',
+    candidateName: 'Priya Patel',
+    email: 'priya@email.com',
+    phone: '+91 87654 32109',
+    location: 'Pune, Maharashtra',
+    experience: '4 years',
+    skills: ['React', 'JavaScript', 'Redux'],
+    appliedDate: '3 days ago',
+    status: 'reviewed',
+    matchScore: 88,
+    appliedFor: 'Frontend Developer',
+    coverLetter: 'I have extensive experience...'
+  },
+  {
+    id: '3',
+    candidateName: 'Amit Kumar',
+    email: 'amit@email.com',
+    phone: '+91 76543 21098',
+    location: 'Bangalore, Karnataka',
+    experience: '5 years',
+    skills: ['React', 'Vue.js', 'Angular'],
+    appliedDate: '5 days ago',
+    status: 'shortlisted',
+    matchScore: 92,
+    appliedFor: 'Frontend Developer',
+    coverLetter: 'As a senior developer...'
+  },
+];
 
-  const stats = [
-    { label: 'Active Jobs', value: '2', icon: Briefcase, color: 'from-blue-500 to-blue-700' },
-    { label: 'Total Applications', value: '77', icon: Users, color: 'from-green-500 to-green-700' },
-    { label: 'Pending Approval', value: '1', icon: Clock, color: 'from-orange-500 to-red-600' },
-    { label: 'Total Views', value: '423', icon: Eye, color: 'from-purple-500 to-purple-700' }
-  ];
+type TabType = 'jobs' | 'candidates' | 'shortlisted' | 'reviewed' | 'interviews';
+type ViewType = 'dashboard' | 'applications' | 'profile' | 'edit' | 'schedule';
 
-  const handleSubmitJob = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Job submitted for approval:', jobForm);
-    setShowAddJobForm(false);
-    setJobForm({
-      title: '',
-      location: '',
-      type: 'Full-time',
-      experience: '',
-      salary: '',
-      description: '',
-      requirements: '',
-      skills: ''
-    });
-    // Reset to jobs tab to show pending job
-    setActiveTab('jobs');
+export function CompanyDashboard({ userName, companyName, onNavigate }: CompanyDashboardProps) {
+  const [activeTab, setActiveTab] = useState<TabType>('jobs');
+  const [currentView, setCurrentView] = useState<ViewType>('dashboard');
+  const [selectedJob, setSelectedJob] = useState<JobAnalytics | null>(null);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [jobs, setJobs] = useState<JobAnalytics[]>(companyJobs);
+  const [candidates, setCandidates] = useState<Candidate[]>(mockCandidates);
+  const [interviews, setInterviews] = useState<InterviewData[]>([]);
+  const [activeJobMenu, setActiveJobMenu] = useState<string | null>(null);
+  
+  // Filter candidates by status
+  const shortlistedCandidates = candidates.filter(c => c.status === 'shortlisted');
+  const reviewedCandidates = candidates.filter(c => c.status === 'reviewed');
+  const interviewCandidates = candidates.filter(c => c.status === 'interview');
+  const activeCandidates = candidates.filter(c => c.status !== 'rejected');
+
+  // Calculate total analytics
+  const totalViews = jobs.reduce((sum, job) => sum + job.views, 0);
+  const totalApplications = jobs.reduce((sum, job) => sum + job.applications, 0);
+  const totalInterested = jobs.reduce((sum, job) => sum + job.interested, 0);
+
+  const handleViewApplications = (job: JobAnalytics) => {
+    setSelectedJob(job);
+    setCurrentView('applications');
   };
 
-  const renderOverview = () => (
-    <div className="space-y-6">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-4">
-        {stats.map((stat, index) => (
-          <div
-            key={index}
-            className="bg-[#141A2A] rounded-xl p-4 border border-[#1f2937]"
-          >
-            <div className={`w-10 h-10 bg-gradient-to-br ${stat.color} rounded-lg flex items-center justify-center mb-3`}>
-              <stat.icon className="w-5 h-5 text-white" />
-            </div>
-            <p className="text-2xl text-white mb-1">{stat.value}</p>
-            <p className="text-gray-400 text-xs">{stat.label}</p>
-          </div>
-        ))}
-      </div>
+  const handleViewProfile = (candidate: Candidate) => {
+    setSelectedCandidate(candidate);
+    setCurrentView('profile');
+  };
 
-      {/* Quick Actions */}
-      <div>
-        <h3 className="text-lg text-white mb-3">Quick Actions</h3>
-        <div className="space-y-3">
-          <button
-            onClick={() => setShowAddJobForm(true)}
-            className="w-full bg-gradient-to-r from-[#007BFF] to-[#0056b3] text-white p-4 rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2"
-          >
-            <Plus className="w-5 h-5" />
-            Post New Job
-          </button>
-          <button
-            onClick={() => setActiveTab('applications')}
-            className="w-full bg-[#141A2A] text-white p-4 rounded-xl border border-[#1f2937] hover:border-[#007BFF] transition-all flex items-center justify-center gap-2"
-          >
-            <Users className="w-5 h-5" />
-            View Applications
-          </button>
-        </div>
-      </div>
+  const handleEditJob = (job: JobAnalytics) => {
+    setSelectedJob(job);
+    setCurrentView('edit');
+  };
 
-      {/* Recent Jobs */}
-      <div>
-        <h3 className="text-lg text-white mb-3">Recent Jobs</h3>
-        <div className="space-y-3">
-          {postedJobs.slice(0, 3).map((job) => (
-            <div
-              key={job.id}
-              className="bg-[#141A2A] rounded-xl p-4 border border-[#1f2937]"
-            >
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex-1">
-                  <h4 className="text-white mb-1">{job.title}</h4>
-                  <p className="text-gray-400 text-sm">{job.location}</p>
-                </div>
-                <span className={`text-xs px-2 py-1 rounded ${
-                  job.status === 'approved'
-                    ? 'bg-green-500/20 text-green-400'
-                    : 'bg-orange-500/20 text-orange-400'
-                }`}>
-                  {job.status === 'approved' ? 'Active' : 'Pending'}
-                </span>
-              </div>
-              <div className="flex items-center gap-4 text-sm text-gray-400">
-                <span className="flex items-center gap-1">
-                  <Eye className="w-4 h-4" />
-                  {job.views}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
-                  {job.applications}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+  const handleScheduleInterview = (candidate: Candidate) => {
+    setSelectedCandidate(candidate);
+    setCurrentView('schedule');
+  };
 
-  const renderJobs = () => (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg text-white">Your Posted Jobs</h3>
-        <button
-          onClick={() => setShowAddJobForm(true)}
-          className="bg-gradient-to-r from-[#007BFF] to-[#0056b3] text-white px-4 py-2 rounded-lg text-sm hover:shadow-lg transition-all flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Post Job
-        </button>
-      </div>
+  const handleInterviewScheduled = (interviewData: InterviewData) => {
+    setInterviews([...interviews, interviewData]);
+    // Update candidate status
+    setCandidates(candidates.map(c =>
+      c.id === interviewData.candidateId ? { ...c, status: 'interview' } : c
+    ));
+    setCurrentView('dashboard');
+  };
 
-      {postedJobs.map((job) => (
-        <div
-          key={job.id}
-          className="bg-[#141A2A] rounded-xl p-4 border border-[#1f2937]"
-        >
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <h4 className="text-white">{job.title}</h4>
-                <span className={`text-xs px-2 py-1 rounded ${
-                  job.status === 'approved'
-                    ? 'bg-green-500/20 text-green-400'
-                    : 'bg-orange-500/20 text-orange-400'
-                }`}>
-                  {job.status === 'approved' ? (
-                    <span className="flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" />
-                      Approved
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      Pending
-                    </span>
-                  )}
-                </span>
-              </div>
-              <div className="space-y-1 text-sm">
-                <p className="text-gray-400">📍 {job.location}</p>
-                <div className="flex items-center gap-3">
-                  <span className="text-green-400">{job.salary}</span>
-                  <span className="text-gray-500">•</span>
-                  <span className="text-gray-400">{job.type}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+  const handleShortlist = (candidate: Candidate) => {
+    setCandidates(candidates.map(c =>
+      c.id === candidate.id ? { ...c, status: 'shortlisted' } : c
+    ));
+  };
 
-          <div className="flex items-center justify-between pt-3 border-t border-[#1f2937]">
-            <div className="flex items-center gap-4 text-sm text-gray-400">
-              <span className="flex items-center gap-1">
-                <Eye className="w-4 h-4" />
-                {job.views} views
-              </span>
-              <span className="flex items-center gap-1">
-                <Users className="w-4 h-4" />
-                {job.applications} applications
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <button className="p-2 hover:bg-[#0A0F1C] rounded-lg transition-colors">
-                <Edit className="w-4 h-4 text-[#007BFF]" />
-              </button>
-              <button className="p-2 hover:bg-[#0A0F1C] rounded-lg transition-colors">
-                <Trash2 className="w-4 h-4 text-red-500" />
-              </button>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+  const handleMarkReviewed = (candidate: Candidate) => {
+    setCandidates(candidates.map(c =>
+      c.id === candidate.id ? { ...c, status: 'reviewed' } : c
+    ));
+  };
 
-  const renderApplications = () => (
-    <div className="text-center py-12">
-      <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-      <p className="text-gray-400 mb-2">No applications yet</p>
-      <p className="text-gray-500 text-sm">Applications will appear here once candidates apply</p>
-    </div>
-  );
+  const handleSaveJob = (updatedJob: JobAnalytics) => {
+    setJobs(jobs.map(j => j.id === updatedJob.id ? updatedJob : j));
+    setCurrentView('dashboard');
+  };
+
+  const handleDeleteJob = () => {
+    if (selectedJob) {
+      setJobs(jobs.filter(j => j.id !== selectedJob.id));
+      setCurrentView('dashboard');
+    }
+  };
+
+  const handleBack = () => {
+    setCurrentView('dashboard');
+    setSelectedJob(null);
+    setSelectedCandidate(null);
+  };
+
+  // Render different views
+  if (currentView === 'applications' && selectedJob) {
+    return (
+      <ViewApplicationsPage
+        jobTitle={selectedJob.title}
+        totalApplications={selectedJob.applications}
+        onBack={handleBack}
+        onViewProfile={handleViewProfile}
+      />
+    );
+  }
+
+  if (currentView === 'profile' && selectedCandidate) {
+    return (
+      <CandidateProfilePage
+        candidate={selectedCandidate}
+        onBack={handleBack}
+      />
+    );
+  }
+
+  if (currentView === 'edit' && selectedJob) {
+    return (
+      <EditJobPage
+        job={selectedJob}
+        onBack={handleBack}
+        onSave={handleSaveJob}
+        onDelete={handleDeleteJob}
+      />
+    );
+  }
+
+  if (currentView === 'schedule' && selectedCandidate) {
+    return (
+      <ScheduleInterviewPage
+        candidate={selectedCandidate}
+        jobTitle={selectedCandidate.appliedFor}
+        onBack={handleBack}
+        onSchedule={handleInterviewScheduled}
+      />
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#0A0F1C] text-white">
+    <div className="h-full w-full bg-[#0A0F1C] flex flex-col">
       {/* Header */}
-      <div className="bg-[#141A2A] border-b border-[#1f2937] px-5 py-4">
-        <div className="flex items-center justify-between">
+      <div className="bg-gradient-to-b from-[#141A2A] to-[#0A0F1C] px-4 py-4">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-[#007BFF] to-[#0056b3] rounded-lg flex items-center justify-center">
-              <Building2 className="w-6 h-6 text-white" />
-            </div>
+            <button
+              onClick={() => onNavigate('sidebar')}
+              className="w-10 h-10 rounded-full bg-[#0A0F1C] flex items-center justify-center"
+            >
+              <Menu className="w-5 h-5 text-white" />
+            </button>
             <div>
-              <h1 className="text-lg text-white">{companyName}</h1>
+              <h1 className="text-white">{companyName}</h1>
               <p className="text-gray-400 text-sm">Company Dashboard</p>
             </div>
           </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onNavigate('notifications')}
+              className="w-10 h-10 rounded-full bg-[#0A0F1C] flex items-center justify-center relative"
+            >
+              <Bell className="w-5 h-5 text-white" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            <button
+              onClick={() => onNavigate('profile')}
+              className="w-10 h-10 rounded-full bg-[#007BFF] flex items-center justify-center"
+            >
+              <span className="text-white">{companyName[0]}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Analytics Cards */}
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="bg-[#0A0F1C] rounded-xl p-3 text-center">
+            <Eye className="w-5 h-5 text-[#007BFF] mx-auto mb-2" />
+            <p className="text-white">{totalViews}</p>
+            <p className="text-gray-400 text-xs">Total Views</p>
+          </div>
+          <div className="bg-[#0A0F1C] rounded-xl p-3 text-center">
+            <FileCheck className="w-5 h-5 text-green-500 mx-auto mb-2" />
+            <p className="text-white">{totalApplications}</p>
+            <p className="text-gray-400 text-xs">Applications</p>
+          </div>
+          <div className="bg-[#0A0F1C] rounded-xl p-3 text-center">
+            <Star className="w-5 h-5 text-orange-500 mx-auto mb-2" />
+            <p className="text-white">{totalInterested}</p>
+            <p className="text-gray-400 text-xs">Interested</p>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-2">
           <button
-            onClick={onLogout}
-            className="p-2 hover:bg-[#0A0F1C] rounded-lg transition-colors"
+            onClick={() => setActiveTab('jobs')}
+            className={`px-4 py-2 rounded-xl whitespace-nowrap transition-all flex items-center gap-2 ${
+              activeTab === 'jobs'
+                ? 'bg-[#007BFF] text-white'
+                : 'bg-[#0A0F1C] text-gray-400'
+            }`}
           >
-            <LogOut className="w-5 h-5 text-red-500" />
+            <Briefcase className="w-4 h-4" />
+            My Job Listings
+          </button>
+          <button
+            onClick={() => setActiveTab('candidates')}
+            className={`px-4 py-2 rounded-xl whitespace-nowrap transition-all flex items-center gap-2 ${
+              activeTab === 'candidates'
+                ? 'bg-[#007BFF] text-white'
+                : 'bg-[#0A0F1C] text-gray-400'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            Candidates
+          </button>
+          <button
+            onClick={() => setActiveTab('shortlisted')}
+            className={`px-4 py-2 rounded-xl whitespace-nowrap transition-all flex items-center gap-2 ${
+              activeTab === 'shortlisted'
+                ? 'bg-[#007BFF] text-white'
+                : 'bg-[#0A0F1C] text-gray-400'
+            }`}
+          >
+            <Star className="w-4 h-4" />
+            Shortlisted
+            {shortlistedCandidates.length > 0 && (
+              <span className="bg-yellow-500 text-black px-2 py-0.5 rounded-full text-xs">
+                {shortlistedCandidates.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('reviewed')}
+            className={`px-4 py-2 rounded-xl whitespace-nowrap transition-all flex items-center gap-2 ${
+              activeTab === 'reviewed'
+                ? 'bg-[#007BFF] text-white'
+                : 'bg-[#0A0F1C] text-gray-400'
+            }`}
+          >
+            <Check className="w-4 h-4" />
+            Reviewed
+            {reviewedCandidates.length > 0 && (
+              <span className="bg-blue-500 text-white px-2 py-0.5 rounded-full text-xs">
+                {reviewedCandidates.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('interviews')}
+            className={`px-4 py-2 rounded-xl whitespace-nowrap transition-all flex items-center gap-2 ${
+              activeTab === 'interviews'
+                ? 'bg-[#007BFF] text-white'
+                : 'bg-[#0A0F1C] text-gray-400'
+            }`}
+          >
+            <Clock className="w-4 h-4" />
+            Interviews
+            {interviews.length > 0 && (
+              <span className="bg-green-500 text-white px-2 py-0.5 rounded-full text-xs">
+                {interviews.length}
+              </span>
+            )}
           </button>
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="bg-[#141A2A] border-b border-[#1f2937] px-5">
-        <div className="flex gap-1">
-          {[
-            { id: 'overview', label: 'Overview' },
-            { id: 'jobs', label: 'Posted Jobs' },
-            { id: 'applications', label: 'Applications' }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-3 text-sm transition-all ${
-                activeTab === tab.id
-                  ? 'text-[#007BFF] border-b-2 border-[#007BFF]'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Content Area */}
-      <div className="px-5 py-6">
-        {activeTab === 'overview' && renderOverview()}
-        {activeTab === 'jobs' && renderJobs()}
-        {activeTab === 'applications' && renderApplications()}
-      </div>
-
-      {/* Add Job Modal */}
-      {showAddJobForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end justify-center z-50 animate-in fade-in">
-          <div className="bg-[#141A2A] rounded-t-3xl w-full max-w-[390px] max-h-[90%] flex flex-col animate-in slide-in-from-bottom">
-            <div className="px-5 py-4 border-b border-[#1f2937] flex items-center justify-between">
-              <h3 className="text-white text-lg">Post New Job</h3>
-              <button
-                onClick={() => setShowAddJobForm(false)}
-                className="p-2 hover:bg-[#0A0F1C] rounded-lg transition-colors"
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        {activeTab === 'jobs' && (
+          <div className="space-y-3">
+            {jobs.map((job, index) => (
+              <motion.div
+                key={job.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-[#141A2A] rounded-2xl p-4"
               >
-                <XCircle className="w-5 h-5 text-gray-400" />
-              </button>
-            </div>
+                <h3 className="text-white mb-2">{job.title}</h3>
+                <p className="text-gray-400 text-sm mb-3">{job.location}</p>
+                
+                {/* Analytics */}
+                <div className="grid grid-cols-4 gap-2 mb-3">
+                  <div className="bg-[#0A0F1C] rounded-lg p-2 text-center">
+                    <p className="text-[#007BFF] text-sm">{job.views}</p>
+                    <p className="text-gray-500 text-xs">Views</p>
+                  </div>
+                  <div className="bg-[#0A0F1C] rounded-lg p-2 text-center">
+                    <p className="text-green-500 text-sm">{job.applications}</p>
+                    <p className="text-gray-500 text-xs">Applied</p>
+                  </div>
+                  <div className="bg-[#0A0F1C] rounded-lg p-2 text-center">
+                    <p className="text-orange-500 text-sm">{job.interested}</p>
+                    <p className="text-gray-500 text-xs">Interest</p>
+                  </div>
+                  <div className="bg-[#0A0F1C] rounded-lg p-2 text-center">
+                    <p className="text-blue-500 text-sm">{job.shortlisted}</p>
+                    <p className="text-gray-500 text-xs">Shortlist</p>
+                  </div>
+                </div>
 
-            <form onSubmit={handleSubmitJob} className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm text-gray-400">Job Title *</label>
-                <input
-                  type="text"
-                  value={jobForm.title}
-                  onChange={(e) => setJobForm({ ...jobForm, title: e.target.value })}
-                  placeholder="e.g. Senior React Developer"
-                  className="w-full bg-[#0A0F1C] text-white px-4 py-3 rounded-xl border border-[#1f2937] focus:border-[#007BFF] focus:outline-none transition-colors"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm text-gray-400">Location *</label>
-                <input
-                  type="text"
-                  value={jobForm.location}
-                  onChange={(e) => setJobForm({ ...jobForm, location: e.target.value })}
-                  placeholder="e.g. Mumbai, Maharashtra"
-                  className="w-full bg-[#0A0F1C] text-white px-4 py-3 rounded-xl border border-[#1f2937] focus:border-[#007BFF] focus:outline-none transition-colors"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm text-gray-400">Job Type *</label>
-                <select
-                  value={jobForm.type}
-                  onChange={(e) => setJobForm({ ...jobForm, type: e.target.value })}
-                  className="w-full bg-[#0A0F1C] text-white px-4 py-3 rounded-xl border border-[#1f2937] focus:border-[#007BFF] focus:outline-none transition-colors"
-                >
-                  <option>Full-time</option>
-                  <option>Part-time</option>
-                  <option>Contract</option>
-                  <option>Internship</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm text-gray-400">Experience Required *</label>
-                <input
-                  type="text"
-                  value={jobForm.experience}
-                  onChange={(e) => setJobForm({ ...jobForm, experience: e.target.value })}
-                  placeholder="e.g. 3-5 years"
-                  className="w-full bg-[#0A0F1C] text-white px-4 py-3 rounded-xl border border-[#1f2937] focus:border-[#007BFF] focus:outline-none transition-colors"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm text-gray-400">Salary Range *</label>
-                <input
-                  type="text"
-                  value={jobForm.salary}
-                  onChange={(e) => setJobForm({ ...jobForm, salary: e.target.value })}
-                  placeholder="e.g. ₹8-12 LPA"
-                  className="w-full bg-[#0A0F1C] text-white px-4 py-3 rounded-xl border border-[#1f2937] focus:border-[#007BFF] focus:outline-none transition-colors"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm text-gray-400">Job Description *</label>
-                <textarea
-                  value={jobForm.description}
-                  onChange={(e) => setJobForm({ ...jobForm, description: e.target.value })}
-                  placeholder="Describe the role and responsibilities..."
-                  rows={4}
-                  className="w-full bg-[#0A0F1C] text-white px-4 py-3 rounded-xl border border-[#1f2937] focus:border-[#007BFF] focus:outline-none transition-colors resize-none"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm text-gray-400">Requirements</label>
-                <textarea
-                  value={jobForm.requirements}
-                  onChange={(e) => setJobForm({ ...jobForm, requirements: e.target.value })}
-                  placeholder="List key requirements..."
-                  rows={3}
-                  className="w-full bg-[#0A0F1C] text-white px-4 py-3 rounded-xl border border-[#1f2937] focus:border-[#007BFF] focus:outline-none transition-colors resize-none"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm text-gray-400">Skills Required</label>
-                <input
-                  type="text"
-                  value={jobForm.skills}
-                  onChange={(e) => setJobForm({ ...jobForm, skills: e.target.value })}
-                  placeholder="e.g. React, Node.js, MongoDB"
-                  className="w-full bg-[#0A0F1C] text-white px-4 py-3 rounded-xl border border-[#1f2937] focus:border-[#007BFF] focus:outline-none transition-colors"
-                />
-              </div>
-
-              <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-                <p className="text-blue-400 text-sm">
-                  ℹ️ Your job posting will be reviewed by our admin team before going live. This usually takes 2-4 hours.
-                </p>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-[#007BFF] to-[#0056b3] text-white py-4 rounded-xl hover:shadow-lg transition-all"
-              >
-                Submit for Approval
-              </button>
-            </form>
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleViewApplications(job)}
+                    className="flex-1 bg-[#007BFF] text-white py-2 rounded-xl text-sm"
+                  >
+                    View Applications
+                  </button>
+                  <button
+                    onClick={() => handleEditJob(job)}
+                    className="px-4 bg-[#0A0F1C] text-gray-400 py-2 rounded-xl text-sm"
+                  >
+                    Edit
+                  </button>
+                </div>
+              </motion.div>
+            ))}
           </div>
-        </div>
-      )}
+        )}
+
+        {activeTab === 'candidates' && (
+          <div className="space-y-3">
+            {activeCandidates.map((candidate, index) => (
+              <motion.div
+                key={candidate.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="bg-[#141A2A] rounded-2xl p-4"
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-full bg-[#007BFF] flex items-center justify-center flex-shrink-0">
+                    <span className="text-white">{candidate.candidateName[0]}</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-white">{candidate.candidateName}</h3>
+                    <p className="text-gray-400 text-sm">{candidate.experience}</p>
+                    <p className="text-[#007BFF] text-xs">{candidate.appliedFor}</p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleViewProfile(candidate)}
+                    className="flex-1 bg-[#007BFF] text-white py-2 rounded-xl text-sm"
+                  >
+                    View Profile
+                  </button>
+                  <button
+                    onClick={() => handleShortlist(candidate)}
+                    className="px-4 bg-yellow-500/20 text-yellow-500 py-2 rounded-xl text-sm"
+                  >
+                    Shortlist
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {activeTab === 'shortlisted' && (
+          <ShortlistSection
+            onBack={handleBack}
+            onViewProfile={handleViewProfile}
+            onScheduleInterview={handleScheduleInterview}
+            shortlistedCandidates={shortlistedCandidates}
+          />
+        )}
+
+        {activeTab === 'reviewed' && (
+          <ReviewedSection
+            onBack={handleBack}
+            onViewProfile={handleViewProfile}
+            onShortlist={handleShortlist}
+            onScheduleInterview={handleScheduleInterview}
+            reviewedCandidates={reviewedCandidates}
+          />
+        )}
+
+        {activeTab === 'interviews' && (
+          <div className="space-y-3">
+            {interviews.length > 0 ? (
+              interviews.map((interview, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="bg-[#141A2A] rounded-2xl p-4"
+                >
+                  <h3 className="text-white mb-2">{interview.candidateName}</h3>
+                  <p className="text-gray-400 text-sm mb-2">{interview.jobTitle}</p>
+                  <div className="bg-[#0A0F1C] rounded-lg p-3 space-y-1 text-sm">
+                    <p className="text-gray-400">📅 {interview.date}</p>
+                    <p className="text-gray-400">⏰ {interview.time}</p>
+                    <p className="text-gray-400">📍 {interview.type}</p>
+                  </div>
+                </motion.div>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <Clock className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-400">No interviews scheduled</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Floating Action Button */}
+      <motion.button
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        onClick={() => onNavigate('post-job')}
+        className="absolute bottom-6 right-6 w-14 h-14 bg-[#007BFF] rounded-full flex items-center justify-center shadow-lg shadow-[#007BFF]/30"
+      >
+        <Plus className="w-6 h-6 text-white" />
+      </motion.button>
     </div>
   );
 }

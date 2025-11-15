@@ -14,6 +14,7 @@ import { RatingPage } from './services/RatingPage';
 interface ServicesPageProps {
   onProfileClick: () => void;
   onWalletClick: () => void;
+  onBack?: () => void;
 }
 
 type ServiceView = 
@@ -30,7 +31,7 @@ type ServiceView =
   | 'rating'
   | 'completed';
 
-export function ServicesPage({ onProfileClick, onWalletClick }: ServicesPageProps) {
+export function ServicesPage({ onProfileClick, onWalletClick, onBack }: ServicesPageProps) {
   const [currentView, setCurrentView] = useState<ServiceView>('main');
   const [selectedService, setSelectedService] = useState<string>('');
   const [selectedSubServices, setSelectedSubServices] = useState<any[]>([]);
@@ -113,7 +114,7 @@ export function ServicesPage({ onProfileClick, onWalletClick }: ServicesPageProp
 
   // Render different views
   if (currentView === 'main') {
-    return <ServicesMainPage onServiceSelect={handleServiceSelect} />;
+    return <ServicesMainPage onServiceSelect={handleServiceSelect} onBack={onBack} />;
   }
 
   if (currentView === 'subServices') {

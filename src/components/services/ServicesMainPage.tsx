@@ -1,11 +1,12 @@
-import { Search, MapPin, Filter, Wrench, Zap, Droplet, Home, Car, Paintbrush, Scissors, Camera, ChevronRight } from 'lucide-react';
+import { Search, MapPin, Filter, Wrench, Zap, Droplet, Home, Car, Paintbrush, Scissors, Camera, ChevronRight, ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 
 interface ServicesMainPageProps {
   onServiceSelect: (service: string, subServices: any[]) => void;
+  onBack?: () => void;
 }
 
-export function ServicesMainPage({ onServiceSelect }: ServicesMainPageProps) {
+export function ServicesMainPage({ onServiceSelect, onBack }: ServicesMainPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
@@ -152,11 +153,23 @@ export function ServicesMainPage({ onServiceSelect }: ServicesMainPageProps) {
     <div className="min-h-full bg-[#0A0F1C] text-white pb-6">
       {/* Header */}
       <div className="px-5 pt-6 pb-4">
-        <h1 className="text-2xl mb-1">Services</h1>
-        <p className="text-gray-400 text-sm flex items-center gap-1.5">
-          <MapPin className="w-3.5 h-3.5 text-[#007BFF]" />
-          Mumbai, Maharashtra
-        </p>
+        <div className="flex items-center gap-3 mb-4">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="w-10 h-10 rounded-full bg-[#141A2A] flex items-center justify-center"
+            >
+              <ArrowLeft className="w-5 h-5 text-white" />
+            </button>
+          )}
+          <div className="flex-1">
+            <h1 className="text-2xl mb-1">Services</h1>
+            <p className="text-gray-400 text-sm flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-[#007BFF]" />
+              Mumbai, Maharashtra
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Search Bar */}
